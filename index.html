@@ -16,7 +16,7 @@
         
         /* 顶部标签导航 */
         .tabs { display: flex; background: #fff; border-radius: 12px; overflow: hidden; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .tab { flex: 1; text-align: center; padding: 15px; font-weight: bold; cursor: pointer; border-bottom: 3px solid transparent; color: #666; }
+        .tab { flex: 1; text-align: center; padding: 15px 5px; font-weight: bold; font-size: 14px; cursor: pointer; border-bottom: 3px solid transparent; color: #666; transition: 0.2s; }
         .tab.active { color: var(--primary); border-bottom-color: var(--primary); background: #f8fbff; }
 
         .section { display: none; }
@@ -24,16 +24,6 @@
 
         .panel { background: var(--card); border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 20px; margin-bottom: 20px; }
         
-        /* ===== 新增：统计面板样式 ===== */
-        .stats-container { display: flex; gap: 10px; margin-bottom: 15px; }
-        .stat-card { flex: 1; background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; }
-        .stat-title { font-size: 13px; color: #666; margin-bottom: 5px; font-weight: bold; }
-        .stat-value { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
-        .stat-sub { font-size: 11px; color: #888; }
-        
-        .text-profit { color: var(--profit-text); }
-        .text-loss { color: var(--loss-text); }
-
         /* 日历样式 */
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .btn { padding: 8px 12px; border: 1px solid var(--border); background: #fff; border-radius: 6px; cursor: pointer; font-size: 14px; }
@@ -71,6 +61,20 @@
         .cf-withdraw { color: var(--loss-text); }
         .cf-img { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 1px solid var(--border); margin-left: 10px; }
         
+        /* ===== 新增：报表页面样式 ===== */
+        .report-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .report-card { background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .report-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #eee; }
+        .report-row:last-child { border-bottom: none; }
+        .report-label { font-size: 14px; color: #666; font-weight: bold; }
+        .report-value { font-size: 16px; font-weight: bold; }
+        .month-detail-list { margin-top: 10px; }
+        .month-item { background: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #eee; }
+        .month-title { font-weight: bold; color: var(--primary); margin-bottom: 8px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        .month-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; font-size: 13px; text-align: center; }
+        .text-green { color: var(--profit-text); }
+        .text-red { color: var(--loss-text); }
+
         /* 模态框查看大图 */
         #modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); z-index: 999; justify-content: center; align-items: center; }
         #modal img { max-width: 95%; max-height: 95%; border-radius: 8px; }
@@ -79,29 +83,15 @@
 <body>
 
 <div class="app-container">
-    <!-- 顶部导航 -->
+    <!-- 顶部导航 (新增第三个Tab) -->
     <div class="tabs">
-        <div class="tab active" onclick="switchTab('trade')">📅 交易日志</div>
-        <div class="tab" onclick="switchTab('cashflow')">💰 资金出入金</div>
+        <div class="tab active" onclick="switchTab('trade')">📅 日志</div>
+        <div class="tab" onclick="switchTab('cashflow')">💰 出入金</div>
+        <div class="tab" onclick="switchTab('report')">📊 报表</div>
     </div>
 
     <!-- ================= 模块 1：交易日志 ================= -->
     <div id="trade-section" class="section active">
-        
-        <!-- ===== 新增：统计面板 ===== -->
-        <div class="stats-container">
-            <div class="stat-card">
-                <div class="stat-title" id="monthStatTitle">本月盈亏</div>
-                <div class="stat-value" id="monthPnlDisplay">$0.00</div>
-                <div class="stat-sub" id="monthDetailDisplay">0 笔 | 胜率 0%</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-title" id="yearStatTitle">本年盈亏</div>
-                <div class="stat-value" id="yearPnlDisplay">$0.00</div>
-                <div class="stat-sub" id="yearDetailDisplay">0 笔 | 胜率 0%</div>
-            </div>
-        </div>
-
         <div class="panel">
             <div class="header">
                 <button class="btn" onclick="changeMonth(-1)">←</button>
@@ -129,7 +119,7 @@
             </div>
 
             <div class="form-group">
-                <label>📝 单笔交易明细 (可上传截图作为 LHDN 证据)</label>
+                <label>📝 单笔交易明细 (可上传截图)</label>
                 <div id="tradesContainer"></div>
                 <button class="btn" onclick="addTradeRow()" style="width: 100%; border-style: dashed; margin-top: 5px;">+ 添加一笔交易</button>
             </div>
@@ -140,7 +130,7 @@
             </div>
 
             <div class="form-group">
-                <label>✅ 做对的事情 / ❌ 做错的事情 (复盘总结)</label>
+                <label>✅ 做对的事情 / ❌ 做错的事情</label>
                 <textarea id="reviewNotes" placeholder="今日复盘总结..."></textarea>
             </div>
 
@@ -170,13 +160,12 @@
                 </div>
             </div>
             <div class="form-group">
-                <label>备注 (如：Maybank 转账 / 盈利提现)</label>
-                <input type="text" id="cfNote" placeholder="备注信息">
+                <label>备注</label>
+                <input type="text" id="cfNote" placeholder="如：Maybank 转账">
             </div>
             <div class="form-group">
-                <label>📸 上传银行流水/转账截图 (作为证据)</label>
+                <label>📸 上传流水截图</label>
                 <input type="file" id="cfImage" accept="image/*" style="padding:5px;">
-                <small style="color:#888;">* 图片会自动压缩保存在本地浏览器，保护隐私。</small>
             </div>
             <button class="save-btn" onclick="saveCashflow()">💾 保存资金记录</button>
         </div>
@@ -186,6 +175,45 @@
             <div id="cashflowList"></div>
         </div>
     </div>
+
+    <!-- ================= 模块 3：盈亏报表 ================= -->
+    <div id="report-section" class="section">
+        <div class="report-header panel">
+            <button class="btn" onclick="changeReportYear(-1)">←</button>
+            <h2 id="reportYearDisplay" style="margin:0;">2026年 报表</h2>
+            <button class="btn" onclick="changeReportYear(1)">→</button>
+        </div>
+
+        <!-- 年度总览 -->
+        <div class="report-card">
+            <h3 style="margin-top:0; color:var(--primary);">🏆 年度总览</h3>
+            <div class="report-row">
+                <span class="report-label">年度净盈亏:</span>
+                <span class="report-value" id="rptYearNet">$0.00</span>
+            </div>
+            <div class="report-row">
+                <span class="report-label">总盈利 (胜):</span>
+                <span class="report-value text-green" id="rptYearProfit">+$0.00</span>
+            </div>
+            <div class="report-row">
+                <span class="report-label">总亏损 (负):</span>
+                <span class="report-value text-red" id="rptYearLoss">-$0.00</span>
+            </div>
+            <div class="report-row">
+                <span class="report-label">总笔数 / 胜率:</span>
+                <span class="report-value" id="rptYearWinRate">0 笔 / 0%</span>
+            </div>
+        </div>
+
+        <!-- 月度明细 -->
+        <div class="report-card">
+            <h3 style="margin-top:0; color:var(--primary);">📅 月度明细</h3>
+            <div id="rptMonthlyList" class="month-detail-list">
+                <!-- 动态生成月份数据 -->
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <!-- 查看大图模态框 -->
@@ -198,9 +226,11 @@
     let tradeDB = JSON.parse(localStorage.getItem('myTradingJournal')) || {};
     let cashflowDB = JSON.parse(localStorage.getItem('myCashflowRecords')) || [];
     
-    // 当前选择的日期
     let currentDate = new Date();
     let selectedDateStr = formatDate(currentDate);
+    
+    // 报表控制的年份
+    let reportYear = new Date().getFullYear();
 
     // 工具函数
     function formatDate(date) {
@@ -208,6 +238,12 @@
         const m = String(date.getMonth()+1).padStart(2,'0');
         const d = String(date.getDate()).padStart(2,'0');
         return `${y}-${m}-${d}`;
+    }
+
+    function formatMoney(amount, showSign = false) {
+        if (amount === 0) return '$0.00';
+        const sign = amount > 0 ? '+' : '-';
+        return (showSign && amount > 0 ? '+' : '') + (amount < 0 ? '-' : '') + '$' + Math.abs(amount).toFixed(2);
     }
 
     // 切换 Tab
@@ -218,10 +254,14 @@
         if (tabName === 'trade') {
             document.querySelectorAll('.tab')[0].classList.add('active');
             document.getElementById('trade-section').classList.add('active');
-        } else {
+        } else if (tabName === 'cashflow') {
             document.querySelectorAll('.tab')[1].classList.add('active');
             document.getElementById('cashflow-section').classList.add('active');
             renderCashflowList();
+        } else if (tabName === 'report') {
+            document.querySelectorAll('.tab')[2].classList.add('active');
+            document.getElementById('report-section').classList.add('active');
+            renderReport(); // 切入报表页时，重新计算数据
         }
     }
 
@@ -253,62 +293,6 @@
             if (dateStr === selectedDateStr) dayClass += ' active';
             grid.innerHTML += `<div class="${dayClass}" onclick="selectDate('${dateStr}')"><div class="day-date">${i}</div><div class="day-val">${displayPnl}</div></div>`;
         }
-        
-        updateStats(); // 每次刷新日历，顺便刷新统计
-    }
-
-    // ===== 新增：计算并更新月度/年度统计 =====
-    function updateStats() {
-        const targetYear = currentDate.getFullYear();
-        const targetMonth = currentDate.getMonth() + 1; // 1-12
-        
-        let monthPnl = 0, monthTrades = 0, monthWins = 0;
-        let yearPnl = 0, yearTrades = 0, yearWins = 0;
-
-        // 遍历所有数据
-        for (const [dateStr, data] of Object.entries(tradeDB)) {
-            const [y, m, d] = dateStr.split('-');
-            const isTargetYear = parseInt(y) === targetYear;
-            const isTargetMonth = isTargetYear && parseInt(m) === targetMonth;
-
-            if (data.trades && data.trades.length > 0) {
-                data.trades.forEach(t => {
-                    const pnl = parseFloat(t.pnl) || 0;
-                    
-                    // 年度累加
-                    if (isTargetYear) {
-                        yearPnl += pnl;
-                        yearTrades++;
-                        if (pnl > 0) yearWins++;
-                    }
-                    
-                    // 月度累加
-                    if (isTargetMonth) {
-                        monthPnl += pnl;
-                        monthTrades++;
-                        if (pnl > 0) monthWins++;
-                    }
-                });
-            }
-        }
-
-        // 更新 DOM (月)
-        document.getElementById('monthStatTitle').innerText = `${targetMonth}月 盈亏`;
-        const mPnlEl = document.getElementById('monthPnlDisplay');
-        mPnlEl.innerText = (monthPnl > 0 ? '+' : '') + '$' + monthPnl.toFixed(2);
-        mPnlEl.className = 'stat-value ' + (monthPnl > 0 ? 'text-profit' : (monthPnl < 0 ? 'text-loss' : ''));
-        
-        const mWinRate = monthTrades > 0 ? Math.round((monthWins / monthTrades) * 100) : 0;
-        document.getElementById('monthDetailDisplay').innerText = `${monthTrades} 笔 | 胜率 ${mWinRate}%`;
-
-        // 更新 DOM (年)
-        document.getElementById('yearStatTitle').innerText = `${targetYear}年 盈亏`;
-        const yPnlEl = document.getElementById('yearPnlDisplay');
-        yPnlEl.innerText = (yearPnl > 0 ? '+' : '') + '$' + yearPnl.toFixed(2);
-        yPnlEl.className = 'stat-value ' + (yearPnl > 0 ? 'text-profit' : (yearPnl < 0 ? 'text-loss' : ''));
-        
-        const yWinRate = yearTrades > 0 ? Math.round((yearWins / yearTrades) * 100) : 0;
-        document.getElementById('yearDetailDisplay').innerText = `${yearTrades} 笔 | 胜率 ${yWinRate}%`;
     }
 
     function selectDate(dateStr) {
@@ -358,11 +342,10 @@
                 <input type="number" step="any" placeholder="止损SL" class="t-sl" value="${data.sl}">
                 <input type="number" step="any" placeholder="止盈TP" class="t-tp" value="${data.tp}">
             </div>
-            <input type="text" placeholder="入场理由/信号 (如：15m跌破支撑)" class="t-reason" value="${data.reason}" style="margin-bottom: 5px;">
+            <input type="text" placeholder="入场理由/信号" class="t-reason" value="${data.reason}" style="margin-bottom: 5px;">
             
-            <!-- 图片上传区 -->
             <div style="display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 5px 10px; border: 1px solid #e0e0e0; border-radius: 6px;">
-                <div style="font-size: 12px; color: #666;">📸 券商截图:</div>
+                <div style="font-size: 12px; color: #666;">📸 截图:</div>
                 <input type="file" accept="image/*" class="t-image-input" style="font-size: 12px; width: 180px;" onchange="handleTradeImage(this)">
                 <input type="hidden" class="t-image-data" value="${data.image || ''}">
                 <img src="${data.image || ''}" class="t-image-preview" style="height: 35px; width: 35px; object-fit: cover; border-radius: 4px; display: ${data.image ? 'block' : 'none'}; cursor: pointer;" onclick="if(this.src && this.src !== window.location.href) showImg(this.src)">
@@ -376,10 +359,8 @@
             const card = input.closest('.trade-card');
             const preview = card.querySelector('.t-image-preview');
             const hiddenInput = card.querySelector('.t-image-data');
-            
             preview.style.display = 'block';
-            preview.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='; // 极小占位图
-
+            preview.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
             compressImage(input.files[0], (base64) => {
                 hiddenInput.value = base64;
                 preview.src = base64;
@@ -392,7 +373,7 @@
         let total = 0;
         pnls.forEach(input => { total += parseFloat(input.value) || 0; });
         const display = document.getElementById('totalPnlDisplay');
-        display.innerText = (total > 0 ? '+' : '') + '$' + total.toFixed(2);
+        display.innerText = formatMoney(total, true);
         display.style.color = total > 0 ? 'var(--profit-text)' : (total < 0 ? 'var(--loss-text)' : '#333');
     }
 
@@ -424,9 +405,10 @@
         try {
             localStorage.setItem('myTradingJournal', JSON.stringify(tradeDB));
             alert('✅ 交易记录保存成功！');
-            renderCalendar(); // 里面包含了 updateStats()
+            renderCalendar();
+            renderReport(); // 保存后顺便刷新报表后台数据
         } catch (e) {
-            alert('❌ 存储空间已满！图片太多了，请清理浏览器或减少截图。');
+            alert('❌ 存储空间已满！图片太多了。');
         }
     }
 
@@ -462,22 +444,11 @@
         const note = document.getElementById('cfNote').value;
         const fileInput = document.getElementById('cfImage');
 
-        if (!date || !amount) {
-            alert("请填写日期和金额！");
-            return;
-        }
+        if (!date || !amount) { alert("请填写日期和金额！"); return; }
 
         const processData = (base64Img = '') => {
-            cashflowDB.push({
-                id: Date.now(),
-                date: date,
-                type: type,
-                amount: parseFloat(amount),
-                note: note,
-                image: base64Img
-            });
+            cashflowDB.push({ id: Date.now(), date, type, amount: parseFloat(amount), note, image: base64Img });
             cashflowDB.sort((a, b) => new Date(b.date) - new Date(a.date));
-            
             try {
                 localStorage.setItem('myCashflowRecords', JSON.stringify(cashflowDB));
                 alert('✅ 出入金记录已保存！');
@@ -485,18 +456,12 @@
                 document.getElementById('cfNote').value = '';
                 document.getElementById('cfImage').value = '';
                 renderCashflowList();
-            } catch (err) {
-                alert('❌ 存储空间已满！图片太多了。');
-            }
+            } catch (err) { alert('❌ 存储空间已满！'); }
         };
 
         if (fileInput.files.length > 0) {
-            compressImage(fileInput.files[0], (base64) => {
-                processData(base64);
-            });
-        } else {
-            processData();
-        }
+            compressImage(fileInput.files[0], (base64) => processData(base64));
+        } else { processData(); }
     }
 
     function renderCashflowList() {
@@ -506,14 +471,12 @@
             list.innerHTML = '<p style="text-align:center; color:#888;">暂无出入金记录</p>';
             return;
         }
-
         cashflowDB.forEach(cf => {
             const isDeposit = cf.type === 'deposit';
             const sign = isDeposit ? '+' : '-';
             const colorClass = isDeposit ? 'cf-deposit' : 'cf-withdraw';
             const typeText = isDeposit ? '入金' : '出金';
             const imgHtml = cf.image ? `<img src="${cf.image}" class="cf-img" onclick="showImg('${cf.image}')">` : `<div style="width:60px;"></div>`;
-
             list.innerHTML += `
                 <div class="cashflow-item">
                     <div class="cf-info">
@@ -525,6 +488,96 @@
                 </div>
             `;
         });
+    }
+
+    // ================= 模块 3：报表统计逻辑 =================
+    function changeReportYear(offset) {
+        reportYear += offset;
+        renderReport();
+    }
+
+    function renderReport() {
+        document.getElementById('reportYearDisplay').innerText = `${reportYear}年 报表`;
+
+        // 初始化数据结构
+        let yearProfit = 0; // 年度总盈利
+        let yearLoss = 0;   // 年度总亏损
+        let yearTrades = 0; // 年度总笔数
+        let yearWins = 0;   // 年度胜利笔数
+        
+        // 月份数据：1-12
+        let monthStats = {};
+        for(let i=1; i<=12; i++) {
+            monthStats[i] = { profit: 0, loss: 0, trades: 0, wins: 0 };
+        }
+
+        // 遍历数据库计算
+        for (const [dateStr, data] of Object.entries(tradeDB)) {
+            const [y, m, d] = dateStr.split('-');
+            if (parseInt(y) === reportYear && data.trades) {
+                const monthInt = parseInt(m);
+                
+                data.trades.forEach(t => {
+                    const pnl = parseFloat(t.pnl) || 0;
+                    
+                    yearTrades++;
+                    monthStats[monthInt].trades++;
+                    
+                    if (pnl > 0) {
+                        yearProfit += pnl;
+                        yearWins++;
+                        monthStats[monthInt].profit += pnl;
+                        monthStats[monthInt].wins++;
+                    } else if (pnl < 0) {
+                        yearLoss += Math.abs(pnl);
+                        monthStats[monthInt].loss += Math.abs(pnl);
+                    }
+                });
+            }
+        }
+
+        // 渲染年度总览
+        const yearNet = yearProfit - yearLoss;
+        const yNetEl = document.getElementById('rptYearNet');
+        yNetEl.innerText = formatMoney(yearNet, true);
+        yNetEl.className = 'report-value ' + (yearNet > 0 ? 'text-green' : (yearNet < 0 ? 'text-red' : ''));
+
+        document.getElementById('rptYearProfit').innerText = '+$' + yearProfit.toFixed(2);
+        document.getElementById('rptYearLoss').innerText = '-$' + yearLoss.toFixed(2);
+        
+        const yWinRate = yearTrades > 0 ? Math.round((yearWins / yearTrades) * 100) : 0;
+        document.getElementById('rptYearWinRate').innerText = `${yearTrades} 笔 / 胜率 ${yWinRate}%`;
+
+        // 渲染月度明细列表
+        const listContainer = document.getElementById('rptMonthlyList');
+        listContainer.innerHTML = '';
+        let hasData = false;
+
+        for(let i=1; i<=12; i++) {
+            const ms = monthStats[i];
+            if(ms.trades > 0) {
+                hasData = true;
+                const net = ms.profit - ms.loss;
+                const winRate = Math.round((ms.wins / ms.trades) * 100);
+                
+                const netColor = net > 0 ? 'text-green' : (net < 0 ? 'text-red' : '');
+                
+                listContainer.innerHTML += `
+                    <div class="month-item">
+                        <div class="month-title">${i}月 (${ms.trades}笔 | 胜率 ${winRate}%)</div>
+                        <div class="month-grid">
+                            <div>总盈利<br><span class="text-green">+$${ms.profit.toFixed(2)}</span></div>
+                            <div>总亏损<br><span class="text-red">-$${ms.loss.toFixed(2)}</span></div>
+                            <div>净盈亏<br><span class="${netColor}" style="font-weight:bold;">${formatMoney(net, true)}</span></div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        if(!hasData) {
+            listContainer.innerHTML = '<p style="text-align:center; color:#888;">该年份暂无交易数据</p>';
+        }
     }
 
     function showImg(base64) {
