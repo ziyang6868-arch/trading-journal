@@ -24,6 +24,16 @@
 
         .panel { background: var(--card); border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 20px; margin-bottom: 20px; }
         
+        /* ===== 新增：统计面板样式 ===== */
+        .stats-container { display: flex; gap: 10px; margin-bottom: 15px; }
+        .stat-card { flex: 1; background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; }
+        .stat-title { font-size: 13px; color: #666; margin-bottom: 5px; font-weight: bold; }
+        .stat-value { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
+        .stat-sub { font-size: 11px; color: #888; }
+        
+        .text-profit { color: var(--profit-text); }
+        .text-loss { color: var(--loss-text); }
+
         /* 日历样式 */
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .btn { padding: 8px 12px; border: 1px solid var(--border); background: #fff; border-radius: 6px; cursor: pointer; font-size: 14px; }
@@ -77,6 +87,21 @@
 
     <!-- ================= 模块 1：交易日志 ================= -->
     <div id="trade-section" class="section active">
+        
+        <!-- ===== 新增：统计面板 ===== -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-title" id="monthStatTitle">本月盈亏</div>
+                <div class="stat-value" id="monthPnlDisplay">$0.00</div>
+                <div class="stat-sub" id="monthDetailDisplay">0 笔 | 胜率 0%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title" id="yearStatTitle">本年盈亏</div>
+                <div class="stat-value" id="yearPnlDisplay">$0.00</div>
+                <div class="stat-sub" id="yearDetailDisplay">0 笔 | 胜率 0%</div>
+            </div>
+        </div>
+
         <div class="panel">
             <div class="header">
                 <button class="btn" onclick="changeMonth(-1)">←</button>
@@ -228,6 +253,62 @@
             if (dateStr === selectedDateStr) dayClass += ' active';
             grid.innerHTML += `<div class="${dayClass}" onclick="selectDate('${dateStr}')"><div class="day-date">${i}</div><div class="day-val">${displayPnl}</div></div>`;
         }
+        
+        updateStats(); // 每次刷新日历，顺便刷新统计
+    }
+
+    // ===== 新增：计算并更新月度/年度统计 =====
+    function updateStats() {
+        const targetYear = currentDate.getFullYear();
+        const targetMonth = currentDate.getMonth() + 1; // 1-12
+        
+        let monthPnl = 0, monthTrades = 0, monthWins = 0;
+        let yearPnl = 0, yearTrades = 0, yearWins = 0;
+
+        // 遍历所有数据
+        for (const [dateStr, data] of Object.entries(tradeDB)) {
+            const [y, m, d] = dateStr.split('-');
+            const isTargetYear = parseInt(y) === targetYear;
+            const isTargetMonth = isTargetYear && parseInt(m) === targetMonth;
+
+            if (data.trades && data.trades.length > 0) {
+                data.trades.forEach(t => {
+                    const pnl = parseFloat(t.pnl) || 0;
+                    
+                    // 年度累加
+                    if (isTargetYear) {
+                        yearPnl += pnl;
+                        yearTrades++;
+                        if (pnl > 0) yearWins++;
+                    }
+                    
+                    // 月度累加
+                    if (isTargetMonth) {
+                        monthPnl += pnl;
+                        monthTrades++;
+                        if (pnl > 0) monthWins++;
+                    }
+                });
+            }
+        }
+
+        // 更新 DOM (月)
+        document.getElementById('monthStatTitle').innerText = `${targetMonth}月 盈亏`;
+        const mPnlEl = document.getElementById('monthPnlDisplay');
+        mPnlEl.innerText = (monthPnl > 0 ? '+' : '') + '$' + monthPnl.toFixed(2);
+        mPnlEl.className = 'stat-value ' + (monthPnl > 0 ? 'text-profit' : (monthPnl < 0 ? 'text-loss' : ''));
+        
+        const mWinRate = monthTrades > 0 ? Math.round((monthWins / monthTrades) * 100) : 0;
+        document.getElementById('monthDetailDisplay').innerText = `${monthTrades} 笔 | 胜率 ${mWinRate}%`;
+
+        // 更新 DOM (年)
+        document.getElementById('yearStatTitle').innerText = `${targetYear}年 盈亏`;
+        const yPnlEl = document.getElementById('yearPnlDisplay');
+        yPnlEl.innerText = (yearPnl > 0 ? '+' : '') + '$' + yearPnl.toFixed(2);
+        yPnlEl.className = 'stat-value ' + (yearPnl > 0 ? 'text-profit' : (yearPnl < 0 ? 'text-loss' : ''));
+        
+        const yWinRate = yearTrades > 0 ? Math.round((yearWins / yearTrades) * 100) : 0;
+        document.getElementById('yearDetailDisplay').innerText = `${yearTrades} 笔 | 胜率 ${yWinRate}%`;
     }
 
     function selectDate(dateStr) {
@@ -258,7 +339,6 @@
         calcTotal();
     }
 
-    // 核心：单笔交易卡片生成（新增了图片上传）
     function addTradeRow(data = { id: '', symbol: '', entry: '', exit: '', sl: '', tp: '', pnl: '', reason: '', image: '' }) {
         const container = document.getElementById('tradesContainer');
         const div = document.createElement('div');
@@ -280,7 +360,7 @@
             </div>
             <input type="text" placeholder="入场理由/信号 (如：15m跌破支撑)" class="t-reason" value="${data.reason}" style="margin-bottom: 5px;">
             
-            <!-- 新增的图片上传区 -->
+            <!-- 图片上传区 -->
             <div style="display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 5px 10px; border: 1px solid #e0e0e0; border-radius: 6px;">
                 <div style="font-size: 12px; color: #666;">📸 券商截图:</div>
                 <input type="file" accept="image/*" class="t-image-input" style="font-size: 12px; width: 180px;" onchange="handleTradeImage(this)">
@@ -291,14 +371,12 @@
         container.appendChild(div);
     }
 
-    // 处理交易图片压缩和预览
     function handleTradeImage(input) {
         if (input.files && input.files[0]) {
             const card = input.closest('.trade-card');
             const preview = card.querySelector('.t-image-preview');
             const hiddenInput = card.querySelector('.t-image-data');
             
-            // 临时提示
             preview.style.display = 'block';
             preview.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='; // 极小占位图
 
@@ -329,7 +407,7 @@
             const tp = item.querySelector('.t-tp').value;
             const reason = item.querySelector('.t-reason').value.trim();
             const pnl = item.querySelector('.t-pnl').value;
-            const image = item.querySelector('.t-image-data').value; // 获取图片数据
+            const image = item.querySelector('.t-image-data').value; 
             
             if (symbol || pnl !== '') {
                 trades.push({ id, symbol, entry, exit, sl, tp, reason, pnl: parseFloat(pnl) || 0, image });
@@ -346,15 +424,13 @@
         try {
             localStorage.setItem('myTradingJournal', JSON.stringify(tradeDB));
             alert('✅ 交易记录保存成功！');
-            renderCalendar();
+            renderCalendar(); // 里面包含了 updateStats()
         } catch (e) {
-            alert('❌ 存储空间已满！因为图片太多了，建议清理一下浏览器或把旧数据导出。');
+            alert('❌ 存储空间已满！图片太多了，请清理浏览器或减少截图。');
         }
     }
 
     // ================= 模块 2：出入金逻辑 =================
-    
-    // 核心：压缩图片 (通用)
     function compressImage(file, callback) {
         const reader = new FileReader();
         reader.onload = function(e) {
